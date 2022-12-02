@@ -15,7 +15,7 @@ export const fixture = `
 10000
 `
 
-export const elvesEnergyFixture = [
+export const elvesCaloriesFixture = [
   [1000, 2000, 3000],
   [4000],
   [5000, 6000],
