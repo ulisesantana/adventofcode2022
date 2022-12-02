@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as fs from 'node:fs'
 import path from 'node:path'
-import { pipeline } from 'stream/promises'
+import { pipeline } from 'node:stream/promises'
 
 await main()
 
