@@ -2,9 +2,44 @@
 import * as fs from 'node:fs'
 import path from 'node:path'
 import { pipeline } from 'stream/promises'
-const prependZero = n => n > 9 ? `${n}` : `0${n}`
-const getNextDay = async () => getLastDay().then(n => n + 1)
-async function getLastDay() {
+
+await main()
+
+async function main() {
+  const day = await getNextDay()
+  const newDayPath = path.resolve(`src/day-${prependZero(day)}`)
+  const templatePath = path.resolve('_templates/day')
+
+  await generateBoilerplate(templatePath, newDayPath)
+  await fillTemplates(templatePath, newDayPath, day)
+
+  console.log(`Generated boilerplate for day ${day} at ${path.relative(path.resolve(), newDayPath)}`)
+}
+
+async function generateBoilerplate(templatePath, newDayPath) {
+  const templates = await fs.promises.readdir(templatePath)
+  await fs.promises.mkdir(newDayPath)
+  await Promise.all(templates.map(filePath => fs.promises.copyFile(path.resolve(templatePath, filePath), path.resolve(newDayPath, filePath))))
+}
+
+async function fillTemplates(templatePath, newDayPath, day) {
+  const testFile = 'test.ts'
+  await pipeline(
+    fs.createReadStream(path.resolve(templatePath, testFile)),
+    transformTemplate(day),
+    fs.createWriteStream(path.resolve(newDayPath, testFile))
+  )
+}
+
+function prependZero (n) {
+  return n > 9 ? `${n}` : `0${n}`
+}
+
+function getNextDay () {
+  return getLastDay().then(n => n + 1)
+}
+
+async function getLastDay () {
   const prefix = 'day-'
   const src = await fs.promises.readdir(path.resolve('src'))
   return src.reduce((nextDay, folder) => {
@@ -15,28 +50,17 @@ async function getLastDay() {
     return nextDay
   }, 1)
 }
-async function * fillTemplate(source) {
+
+function transformTemplate (day) {
   const tag = '@day'
-  for await (const chunk of source) {
-    const value = chunk.toString()
-    if (value.includes(tag)) {
-      yield Buffer.from(value.replace(tag, day))
-    } else {
-      yield chunk
+  return async function * (data) {
+    for await (const chunk of data) {
+      const value = chunk.toString()
+      if (value.includes(tag)) {
+        yield Buffer.from(value.replace(tag, day))
+      } else {
+        yield chunk
+      }
     }
   }
 }
-
-const day = await getNextDay()
-const newDayPath = path.resolve(`src/day-${prependZero(day)}`)
-const templatePath = path.resolve('_templates/day')
-const templates = await fs.promises.readdir(templatePath)
-await fs.promises.mkdir(newDayPath)
-await Promise.all(templates.map(filePath => fs.promises.copyFile(path.resolve(templatePath, filePath), path.resolve(newDayPath, filePath))))
-const testFile = 'test.ts'
-await pipeline(
-  fs.createReadStream(path.resolve(templatePath, testFile)),
-  fillTemplate,
-  fs.createWriteStream(path.resolve(newDayPath, testFile))
-)
-console.log(`Generated boilerplate for day ${day} at ${path.relative(path.resolve(), newDayPath)}`)
