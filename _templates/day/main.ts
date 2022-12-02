@@ -1,4 +1,4 @@
-function doStuff () {
+export function doStuff () {
   return null
 }
 
