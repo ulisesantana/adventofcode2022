@@ -11,7 +11,7 @@ export function getMaxCalories (elves: Array<ElfCalories>): ElfTotalCalories {
   return Math.max(...elves.map(calcElfTotalCalories))
 }
 
-export function sumTop3Calories (elves: number[][]): number {
+export function sumTop3Calories (elves: Array<ElfCalories>): number {
   const top3Calories = elves
     .map(calcElfTotalCalories)
     .sort((a, b) => b - a)
@@ -19,7 +19,7 @@ export function sumTop3Calories (elves: number[][]): number {
   return sum(...top3Calories)
 }
 
-export function parseInput (input: string): number[][] {
+export function parseInput (input: string): Array<ElfCalories> {
   return input
     .split(/\n\n/)
     .map((block) => block
