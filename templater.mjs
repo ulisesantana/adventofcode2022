@@ -50,7 +50,7 @@ export class Templater {
    * @param {[string, any][]} data
    */
   static #populateTemplate (template, data) {
-    if (data.length < 1) {
+    if (data?.length < 1) {
       return template
     }
     const [[tag, value], ...rest] = data
