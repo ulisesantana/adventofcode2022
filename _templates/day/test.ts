@@ -1,5 +1,8 @@
-describe('Day @day', () => {
+import { doStuff } from './main'
+import { expectedOutput, fixture } from './fixture'
+
+describe('Day {{day}}', () => {
   it('should ', () => {
-    expect(true).toBe(true)
+    expect(doStuff(fixture)).toBe(expectedOutput)
   })
 })

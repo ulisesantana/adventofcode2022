@@ -1,34 +1,24 @@
 #!/usr/bin/env node
 import * as fs from 'node:fs'
 import path from 'node:path'
-import { pipeline } from 'node:stream/promises'
+import { Templater } from './templater.mjs'
 
 await main()
 
 async function main() {
   const day = await getNextDay()
-  const newDayPath = path.resolve(`src/day-${prependZero(day)}`)
+  const dayFolder = getDayFolder(day)
+  const newDayPath = path.resolve(`src/${dayFolder}`)
   const templatePath = path.resolve('_templates/day')
+  const t = new Templater(templatePath, newDayPath)
 
-  await generateBoilerplate(templatePath, newDayPath)
-  await fillTemplates(templatePath, newDayPath, day)
+  await t.generateBoilerplate({ day, dayFolder })
 
   console.log(`Generated boilerplate for day ${day} at ${path.relative(path.resolve(), newDayPath)}`)
 }
 
-async function generateBoilerplate(templatePath, newDayPath) {
-  const templates = await fs.promises.readdir(templatePath)
-  await fs.promises.mkdir(newDayPath)
-  await Promise.all(templates.map(filePath => fs.promises.copyFile(path.resolve(templatePath, filePath), path.resolve(newDayPath, filePath))))
-}
-
-async function fillTemplates(templatePath, newDayPath, day) {
-  const testFile = 'test.ts'
-  await pipeline(
-    fs.createReadStream(path.resolve(templatePath, testFile)),
-    transformTemplate(day),
-    fs.createWriteStream(path.resolve(newDayPath, testFile))
-  )
+function getDayFolder(day) {
+  return `day-${prependZero(day)}`
 }
 
 function prependZero (n) {
@@ -51,16 +41,3 @@ async function getLastDay () {
   }, 1)
 }
 
-function transformTemplate (day) {
-  const tag = '@day'
-  return async function * (data) {
-    for await (const chunk of data) {
-      const value = chunk.toString()
-      if (value.includes(tag)) {
-        yield Buffer.from(value.replace(tag, day))
-      } else {
-        yield chunk
-      }
-    }
-  }
-}

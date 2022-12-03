@@ -1,7 +1,11 @@
-export function doStuff () {
+import { readFile } from '../utils'
+
+export function doStuff (input: string) {
   return null
 }
 
 if (require.main === module) {
-  doStuff()
+  readFile('src/{{dayFolder}}/input.txt').then((input) => {
+    console.log(`Result: ${doStuff(input)}`)
+  })
 }
