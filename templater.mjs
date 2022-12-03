@@ -54,6 +54,6 @@ export class Templater {
       return template
     }
     const [[tag, value], ...rest] = data
-    return Templater.#populateTemplate(template.replace(`{{${tag}}}`, value), rest)
+    return Templater.#populateTemplate(template.replaceAll(`{{${tag}}}`, value), rest)
   }
 }
