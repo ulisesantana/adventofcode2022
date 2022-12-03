@@ -32,12 +32,12 @@ function getNextDay () {
 async function getLastDay () {
   const prefix = 'day-'
   const src = await fs.promises.readdir(path.resolve('src'))
-  return src.reduce((nextDay, folder) => {
+  return src.reduce((lastDay, folder) => {
     if (folder.includes(prefix)) {
       const day = Number(folder.replace(prefix, ''))
-      return day > nextDay ? day : nextDay
+      return day > lastDay ? day : lastDay
     }
-    return nextDay
+    return lastDay
   }, 1)
 }
 
