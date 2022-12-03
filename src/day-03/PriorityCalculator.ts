@@ -23,9 +23,6 @@ export class PriorityCalculator {
         temp.length = 0
       }
     }
-    if (temp.length) {
-      yield [...temp] as RucksackGroup
-    }
   }
 
   private static findRepeatedItem ([firstRucksack, secondRucksack, thirdRucksack]: RucksackGroup) {
