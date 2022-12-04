@@ -1,4 +1,4 @@
-import { doStuff } from './main'
+import { doStuff } from './solution'
 import { expectedOutput, fixture } from './fixture'
 
 describe('Day {{day}}', () => {
