@@ -1,18 +1,14 @@
-class Assignment {
-  constructor (readonly from: number, readonly to: number) {}
-
-  isOverlapped (assignment: Assignment) {
-    const from = Math.min(this.from, assignment.from)
-    if (from === this.from) {
-      return this.to >= assignment.from
-    }
-    return assignment.to >= this.from
-  }
-}
+import { Assignment } from './Assignment'
 
 export class Assignments {
   static buildFromRaw (assignments: string[]): Assignments {
     return new Assignments(assignments.map(team => team.split(',').map(Assignments.parseAssignment)))
+  }
+
+  private static parseAssignment (rawAssignment: string): Assignment {
+    const sectionRange = rawAssignment.split('-')
+    const [from, to] = [Number(sectionRange[0]), Number(sectionRange[1])]
+    return new Assignment(from, to)
   }
 
   private constructor (private readonly values: Array<Assignment[]>) {}
@@ -24,11 +20,5 @@ export class Assignments {
           .filter((_, indexB) => indexB !== indexA)
           .some(assignment.isOverlapped.bind(assignment))
       ))
-  }
-
-  private static parseAssignment (rawAssignment: string): Assignment {
-    const sectionRange = rawAssignment.split('-')
-    const [from, to] = [Number(sectionRange[0]), Number(sectionRange[1])]
-    return new Assignment(from, to)
   }
 }
