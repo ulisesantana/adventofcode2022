@@ -2,7 +2,7 @@ import { expectedOutput, fixture } from './fixture'
 import { countInefficientAssignments } from './solution'
 
 describe('Day 4', () => {
-  it('should count section assignments fully contained by the elf partner', () => {
+  it('should count overlapped section assignments between elf pairs', () => {
     expect(countInefficientAssignments(fixture)).toBe(expectedOutput)
   })
 })
