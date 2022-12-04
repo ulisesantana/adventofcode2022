@@ -12,14 +12,13 @@ export class AssignmentsValidator {
     const teamAssignments = team.split(',').map(AssignmentsValidator.parseAssignment)
     return teamAssignments.some((assignment, indexA) => teamAssignments
       .filter((_, indexB) => indexB !== indexA)
-      .some(
-        otherAssignment => AssignmentsValidator.isInefficientPair(assignment, otherAssignment)
-      ))
-  }
-
-  private static isInefficientPair (assignment: Assignment, otherAssignment: Assignment) {
-    return assignment.from <= otherAssignment.from &&
-      assignment.to >= otherAssignment.to
+      .some(otherAssignment => {
+        const from = Math.min(assignment.from, otherAssignment.from)
+        if (from === assignment.from) {
+          return assignment.to >= otherAssignment.from
+        }
+        return otherAssignment.to >= assignment.from
+      }))
   }
 
   private static parseAssignment (rawAssignment: string): Assignment {
