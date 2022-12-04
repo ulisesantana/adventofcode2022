@@ -1,4 +1,4 @@
-import { getMaxCalories, sumTop3Calories, parseInput } from './main'
+import { getMaxCalories, sumTop3Calories, parseInput } from './solution'
 import { fixture, elvesCaloriesFixture } from './fixture'
 
 describe('Day 1', () => {
