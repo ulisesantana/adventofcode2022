@@ -22,8 +22,7 @@ export class Stack {
   }
 
   add (...crates: Crate[]): void {
-    const newCrates = [...crates].reverse()
-    this.crates = [...newCrates, ...this.crates]
+    this.crates = [...crates, ...this.crates]
   }
 }
 
