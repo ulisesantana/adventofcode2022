@@ -2,4 +2,5 @@ export const fixture = `
 mjqjpqmgbljsphdztnvjfqwrcgsmlb
 `
 
-export const expectedOutput = 7
+export const expectedPacketMarkerPosition = 7
+export const expectedMessageMarkerPosition = 19

@@ -1,6 +1,7 @@
 import { readFile } from '../utils'
-import { findMarkerPosition } from './solution'
+import { findMessageMarkerPosition, findPacketMarkerPosition } from './solution'
 
 readFile('src/day-06/input.txt').then((input) => {
-  console.log(`Result: ${findMarkerPosition(input)}`)
+  console.log(`Packet: ${findPacketMarkerPosition(input)}`)
+  console.log(`Message: ${findMessageMarkerPosition(input)}`)
 })

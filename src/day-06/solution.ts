@@ -5,14 +5,23 @@ type Marker = {
   value: string
 }
 
-class Decoder {
-  private static markerLength = 4
+class Device {
+  private static PACKET_MARKER_LENGTH = 4
+  private static MESSAGE_MARKER_LENGTH = 14
 
-  static findMarker (data: string): Marker {
-    for (const { index, sequence } of Decoder.generateSequences(data)) {
-      if (Decoder.isValidMarker(sequence)) {
+  static findPacketMarker (data: string): Marker {
+    return Device.findMarker(data, Device.PACKET_MARKER_LENGTH)
+  }
+
+  static findMessageMarker (data: string) {
+    return Device.findMarker(data, Device.MESSAGE_MARKER_LENGTH)
+  }
+
+  private static findMarker (data: string, markerLength: number): Marker {
+    for (const { index, sequence } of Device.generateSequences(data, markerLength)) {
+      if (Device.isValidMarker(sequence, markerLength)) {
         return {
-          startPosition: index + Decoder.markerLength,
+          startPosition: index + markerLength,
           value: sequence.join('')
         }
       }
@@ -20,10 +29,10 @@ class Decoder {
     throw new Error('Marker not found')
   }
 
-  static * generateSequences (data: string): Generator<{ index: number, sequence: string[] }> {
+  private static * generateSequences (data: string, markerLength: number): Generator<{ index: number, sequence: string[] }> {
     for (const [index] of [...data].entries()) {
       const i = Number(index)
-      const sequence = data.substring(i, i + Decoder.markerLength)
+      const sequence = data.substring(i, i + markerLength)
       yield {
         index: i,
         sequence: [...sequence]
@@ -31,11 +40,15 @@ class Decoder {
     }
   }
 
-  private static isValidMarker (sequence: string[]) {
-    return new Set(sequence).size === Decoder.markerLength
+  private static isValidMarker (sequence: string[], markerLength: number) {
+    return new Set(sequence).size === markerLength
   }
 }
 
-export function findMarkerPosition (input: string) {
-  return Decoder.findMarker(input.replaceAll(EOL, '')).startPosition
+export function findPacketMarkerPosition (input: string) {
+  return Device.findPacketMarker(input.replaceAll(EOL, '')).startPosition
+}
+
+export function findMessageMarkerPosition (input: string) {
+  return Device.findMessageMarker(input.replaceAll(EOL, '')).startPosition
 }
