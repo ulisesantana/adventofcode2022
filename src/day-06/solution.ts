@@ -1,8 +1,7 @@
 import { EOL } from 'os'
 
 type Marker = {
-  startPosition: number,
-  value: string
+  position: number,
 }
 
 class Device {
@@ -21,8 +20,7 @@ class Device {
     for (const { index, sequence } of Device.generateSequences(data, markerLength)) {
       if (Device.isValidMarker(sequence, markerLength)) {
         return {
-          startPosition: index + markerLength,
-          value: sequence.join('')
+          position: index + markerLength
         }
       }
     }
@@ -30,12 +28,12 @@ class Device {
   }
 
   private static * generateSequences (data: string, markerLength: number): Generator<{ index: number, sequence: string[] }> {
-    for (const [index] of [...data].entries()) {
+    for (const [index] of Array.from(data).entries()) {
       const i = Number(index)
       const sequence = data.substring(i, i + markerLength)
       yield {
         index: i,
-        sequence: [...sequence]
+        sequence: Array.from(sequence)
       }
     }
   }
@@ -46,9 +44,9 @@ class Device {
 }
 
 export function findPacketMarkerPosition (input: string) {
-  return Device.findPacketMarker(input.replaceAll(EOL, '')).startPosition
+  return Device.findPacketMarker(input.replaceAll(EOL, '')).position
 }
 
 export function findMessageMarkerPosition (input: string) {
-  return Device.findMessageMarker(input.replaceAll(EOL, '')).startPosition
+  return Device.findMessageMarker(input.replaceAll(EOL, '')).position
 }
