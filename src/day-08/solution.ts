@@ -1,4 +1,4 @@
-import { multiply, split, sum } from '../utils'
+import { multiply, split } from '../utils'
 import { EOL } from 'os'
 
 class Counter {
@@ -52,32 +52,32 @@ class TreeHelper {
     if (this.isOnEdge(x, y)) {
       return true
     }
-    return this.areNeighboursEnoughLow(x, y)
+    return !this.areNeighboursBlockingTreeAt(x, y)
   }
 
   private calcScenicScore (x: number, y: number) {
     const baseHeight = this.treeMap[x][y]
     const scores = Object
       .values(this.getNeighbours(x, y))
-      .map(n => n.length ? this.countTreeVision(baseHeight, n) : 0)
+      .map(n => this.countTreeVisibility(baseHeight, n))
     return multiply(...scores)
   }
 
-  private countTreeVision (treeHeight: number, [tree, ...rest]: number[], treeView = 1) {
-    if (rest.length < 1 || tree === undefined || tree >= treeHeight) {
-      return treeView
+  private countTreeVisibility (treeHeight: number, [tree, ...rest]: number[], treeVisibility = 1) {
+    if (!rest.length) {
+      return tree !== undefined ? treeVisibility : 0
     }
-    return this.countTreeVision(treeHeight, rest, treeView + 1)
+    if (tree >= treeHeight) {
+      return treeVisibility
+    }
+    return this.countTreeVisibility(treeHeight, rest, treeVisibility + 1)
   }
 
-  private areNeighboursEnoughLow (x: number, y: number) {
+  private areNeighboursBlockingTreeAt (x: number, y: number) {
     const treeHeight = this.treeMap[x][y]
-    const isEnoughLow = (n: number) => n < treeHeight
-    const { up, down, left, right } = this.getNeighbours(x, y)
-    return up.every(isEnoughLow) ||
-      right.every(isEnoughLow) ||
-      down.every(isEnoughLow) ||
-      left.every(isEnoughLow)
+    const isBlocking = (n: number) => n >= treeHeight
+    return Object.values(this.getNeighbours(x, y))
+      .every(neighboursInOneDirection => neighboursInOneDirection.some(isBlocking))
   }
 
   private isOnEdge (x: number, y: number) {
