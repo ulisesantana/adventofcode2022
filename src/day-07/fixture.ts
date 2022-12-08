@@ -24,4 +24,5 @@ $ ls
 7214296 k
 `
 
-export const expectedOutput = 95437
+export const expectedOutputPart1 = 95437
+export const expectedOutputPart2 = 24933642
