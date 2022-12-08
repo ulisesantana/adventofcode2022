@@ -9,5 +9,6 @@ describe('Day 8', () => {
   })
   it('should calc the highest scenic score', async () => {
     expect(calcHighestScenicScore(fixture)).toBe(expectedOutputPart2)
+    expect(calcHighestScenicScore(await readFile('src/day-08/input.txt'))).toBe(301392)
   })
 })

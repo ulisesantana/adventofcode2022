@@ -1,4 +1,4 @@
-import { split } from '../utils'
+import { multiply, split, sum } from '../utils'
 import { EOL } from 'os'
 
 class Counter {
@@ -17,23 +17,67 @@ class Counter {
 }
 
 class TreeHelper {
-  constructor (private readonly treeMap: number[][]) {}
+  private readonly treeMap: Array<number[]>
+  constructor (input: string) {
+    this.treeMap = split(EOL, input).map(row => Array.from(row).map(x => Number(x)))
+  }
 
-  isVisible (x: number, y: number) {
+  calcVisibleTrees () {
+    const visibleTrees = new Counter()
+    for (const [x, y] of this.generateTreeMapIterator()) {
+      if (this.isVisible(x, y)) {
+        visibleTrees.increase()
+      }
+    }
+    return visibleTrees.value
+  }
+
+  calcHighestScenicScore () {
+    const scores = [] as number[]
+    for (const [x, y] of this.generateTreeMapIterator()) {
+      scores.push(this.calcScenicScore(x, y))
+    }
+    return Math.max(...scores)
+  }
+
+  private * generateTreeMapIterator (): Generator<[number, number]> {
+    for (const [rowIndex, row] of this.treeMap.entries()) {
+      for (const [columnIndex] of row.entries()) {
+        yield [rowIndex, columnIndex]
+      }
+    }
+  }
+
+  private isVisible (x: number, y: number) {
     if (this.isOnEdge(x, y)) {
       return true
     }
     return this.areNeighboursEnoughLow(x, y)
   }
 
+  private calcScenicScore (x: number, y: number) {
+    const baseHeight = this.treeMap[x][y]
+    const scores = Object
+      .values(this.getNeighbours(x, y))
+      .map(n => n.length ? this.countTreeVision(baseHeight, n) : 0)
+    return multiply(...scores)
+  }
+
+  private countTreeVision (treeHeight: number, [tree, ...rest]: number[], treeView = 1) {
+    if (rest.length < 1 || tree === undefined || tree >= treeHeight) {
+      return treeView
+    }
+    return this.countTreeVision(treeHeight, rest, treeView + 1)
+  }
+
   private areNeighboursEnoughLow (x: number, y: number) {
     const treeHeight = this.treeMap[x][y]
     const isEnoughLow = (n: number) => n < treeHeight
-    const neighbours = this.getNeighbours(x, y)
-    return neighbours.top.every(isEnoughLow) ||
-      neighbours.right.every(isEnoughLow) ||
-      neighbours.bottom.every(isEnoughLow) ||
-      neighbours.left.every(isEnoughLow)
+    const { up, down, left, right } = this.getNeighbours(x, y)
+    return up.every(isEnoughLow) ||
+      right.every(isEnoughLow) ||
+      down.every(isEnoughLow) ||
+      left.every(isEnoughLow)
   }
 
   private isOnEdge (x: number, y: number) {
@@ -48,38 +92,18 @@ class TreeHelper {
   private getNeighbours (x: number, y: number) {
     const isNotUndefined = x => x !== undefined
     return {
-      top: this.treeMap.slice(0, x).map(r => r[y]).filter(isNotUndefined),
-      left: this.treeMap[x].slice(0, y).filter(isNotUndefined),
+      up: this.treeMap.slice(0, x).map(r => r[y]).filter(isNotUndefined).reverse(),
+      left: this.treeMap[x].slice(0, y).filter(isNotUndefined).reverse(),
       right: this.treeMap[x].slice(y + 1).filter(isNotUndefined),
-      bottom: this.treeMap.slice(x + 1).map(r => r[y]).filter(isNotUndefined)
+      down: this.treeMap.slice(x + 1).map(r => r[y]).filter(isNotUndefined)
     }
   }
 }
 
 export function countVisibleTrees (input: string) {
-  const map = split(EOL, input).map(row => Array.from(row).map(x => Number(x)))
-  const visibleTrees = new Counter()
-  const helper = new TreeHelper(map)
-  for (const [rowIndex, row] of map.entries()) {
-    for (const [columnIndex] of row.entries()) {
-      if (helper.isVisible(rowIndex, columnIndex)) {
-        visibleTrees.increase()
-      }
-    }
-  }
-  return visibleTrees.value
+  return new TreeHelper(input).calcVisibleTrees()
 }
 
 export function calcHighestScenicScore (input: string) {
-  const map = split(EOL, input).map(row => Array.from(row).map(x => Number(x)))
-  const visibleTrees = new Counter()
-  const helper = new TreeHelper(map)
-  for (const [rowIndex, row] of map.entries()) {
-    for (const [columnIndex] of row.entries()) {
-      if (helper.isVisible(rowIndex, columnIndex)) {
-        visibleTrees.increase()
-      }
-    }
-  }
-  return visibleTrees.value
+  return new TreeHelper(input).calcHighestScenicScore()
 }
