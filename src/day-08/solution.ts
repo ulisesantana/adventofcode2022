@@ -1,21 +1,6 @@
 import { multiply, split } from '../utils'
 import { EOL } from 'os'
 
-class Counter {
-  #value: number
-  constructor () {
-    this.#value = 0
-  }
-
-  get value () {
-    return this.#value
-  }
-
-  increase () {
-    this.#value += 1
-  }
-}
-
 class TreeHelper {
   private readonly treeMap: Array<number[]>
   constructor (input: string) {
@@ -23,13 +8,13 @@ class TreeHelper {
   }
 
   calcVisibleTrees () {
-    const visibleTrees = new Counter()
+    let visibleTrees = 0
     for (const [x, y] of this.generateTreeMapIterator()) {
       if (this.isVisible(x, y)) {
-        visibleTrees.increase()
+        visibleTrees += 1
       }
     }
-    return visibleTrees.value
+    return visibleTrees
   }
 
   calcHighestScenicScore () {
@@ -54,10 +39,7 @@ class TreeHelper {
   private isOnEdge (x: number, y: number) {
     const maxX = this.treeMap.length - 1
     const maxY = this.treeMap[x].length - 1
-    return x === 0 ||
-      x === maxX ||
-      y === 0 ||
-      y === maxY
+    return x === 0 || x === maxX || y === 0 || y === maxY
   }
 
   private calcScenicScore (x: number, y: number) {
