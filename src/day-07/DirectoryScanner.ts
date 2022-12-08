@@ -1,36 +1,42 @@
-import { split } from '../utils'
+import { split, sum } from '../utils'
 
-export class File {
+abstract class Data {
   constructor (readonly path: string, readonly size: number) {}
 }
 
-export class Directory {
-  readonly files = [] as File[]
+class File extends Data {}
+export class Directory extends Data {}
 
-  constructor (readonly path: string, readonly size: number = 0) {}
-  addFiles (...files: File[]) {
-    this.files.push(...files)
-    return this
-  }
-}
-
-export class DirectoryManager {
-  private readonly directories = new Map<string, Directory>()
+export class DirectoryScanner {
+  private readonly directories = new Set<string>()
+  private readonly files = [] as File[]
   private currentDirectory: string = ''
   private rootPath = '/'
   private changeDirectoryCommand = '$ cd '
+
   constructor (private readonly terminalOutput: string[]) {}
 
-  scan (): Map<string, Directory> {
+  scan (): Directory[] {
     for (const line of this.terminalOutput) {
       if (line.startsWith(this.changeDirectoryCommand)) {
         this.changeDirectory(line)
       }
       if (line.match(/\d/)) {
-        this.addFile(this.currentDirectory, line)
+        this.addFile(line)
       }
     }
-    return this.directories
+    return this.buildDirectoriesFrom(this.directories)
+  }
+
+  private buildDirectoriesFrom (directories: Set<string>) {
+    return Array.from(directories).map(path => new Directory(
+      path,
+      sum(...this.files.reduce<number[]>((
+        sizes, file) => file.path.startsWith(path)
+        ? sizes.concat(file.size)
+        : sizes,
+      []))
+    ))
   }
 
   private changeDirectory (command: string) {
@@ -42,6 +48,7 @@ export class DirectoryManager {
     } else {
       this.currentDirectory = this.concatPath(directoryName)
     }
+    this.directories.add(this.currentDirectory)
   }
 
   private concatPath (directoryName: string) {
@@ -51,11 +58,8 @@ export class DirectoryManager {
     return `${this.currentDirectory}/${directoryName}`
   }
 
-  private addFile (path: string, line: string) {
-    const directory = this.directories.get(path) ?? new Directory(path)
+  private addFile (line: string) {
     const [size, name] = split(/\s/, line)
-    const file = new File(this.concatPath(name), Number(size))
-    directory.addFiles(file)
-    this.directories.set(directory.path, directory)
+    this.files.push(new File(this.concatPath(name), Number(size)))
   }
 }
