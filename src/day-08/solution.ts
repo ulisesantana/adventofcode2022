@@ -40,25 +40,30 @@ class TreeHelper {
     return Math.max(...scores)
   }
 
-  private * generateTreeMapIterator (): Generator<[number, number]> {
-    for (const [rowIndex, row] of this.treeMap.entries()) {
-      for (const [columnIndex] of row.entries()) {
-        yield [rowIndex, columnIndex]
-      }
-    }
+  private isVisible (x: number, y: number) {
+    return this.isOnEdge(x, y) || !this.areNeighboursBlockingTreeAt(x, y)
   }
 
-  private isVisible (x: number, y: number) {
-    if (this.isOnEdge(x, y)) {
-      return true
-    }
-    return !this.areNeighboursBlockingTreeAt(x, y)
+  private areNeighboursBlockingTreeAt (x: number, y: number) {
+    const treeHeight = this.treeMap[x][y]
+    const isBlocking = (n: number) => n >= treeHeight
+    return Object.values(this.getNeighboursSortedByProximity(x, y))
+      .every(neighboursInOneDirection => neighboursInOneDirection.some(isBlocking))
+  }
+
+  private isOnEdge (x: number, y: number) {
+    const maxX = this.treeMap.length - 1
+    const maxY = this.treeMap[x].length - 1
+    return x === 0 ||
+      x === maxX ||
+      y === 0 ||
+      y === maxY
   }
 
   private calcScenicScore (x: number, y: number) {
     const baseHeight = this.treeMap[x][y]
     const scores = Object
-      .values(this.getNeighbours(x, y))
+      .values(this.getNeighboursSortedByProximity(x, y))
       .map(n => this.countTreeVisibility(baseHeight, n))
     return multiply(...scores)
   }
@@ -73,23 +78,15 @@ class TreeHelper {
     return this.countTreeVisibility(treeHeight, rest, treeVisibility + 1)
   }
 
-  private areNeighboursBlockingTreeAt (x: number, y: number) {
-    const treeHeight = this.treeMap[x][y]
-    const isBlocking = (n: number) => n >= treeHeight
-    return Object.values(this.getNeighbours(x, y))
-      .every(neighboursInOneDirection => neighboursInOneDirection.some(isBlocking))
+  private * generateTreeMapIterator (): Generator<[number, number]> {
+    for (const [rowIndex, row] of this.treeMap.entries()) {
+      for (const [columnIndex] of row.entries()) {
+        yield [rowIndex, columnIndex]
+      }
+    }
   }
 
-  private isOnEdge (x: number, y: number) {
-    const maxX = this.treeMap.length - 1
-    const maxY = this.treeMap[x].length - 1
-    return x === 0 ||
-      x === maxX ||
-      y === 0 ||
-      y === maxY
-  }
-
-  private getNeighbours (x: number, y: number) {
+  private getNeighboursSortedByProximity (x: number, y: number) {
     const isNotUndefined = x => x !== undefined
     return {
       up: this.treeMap.slice(0, x).map(r => r[y]).filter(isNotUndefined).reverse(),
