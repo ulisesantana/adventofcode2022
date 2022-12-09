@@ -13,6 +13,10 @@ type Instruction = [Direction, Steps]
 class Position {
   constructor (public x: number, public y: number) {}
 
+  clone () {
+    return new Position(this.x, this.y)
+  }
+
   toString () {
     return `${this.x}:${this.y}`
   }
@@ -40,59 +44,90 @@ class Position {
 }
 
 class RopeSimulator {
-  private readonly headPosition = new Position(0, 0)
-  private readonly tailPosition = new Position(0, 0)
+  private readonly knots: Position[]
   private readonly tailVisitedPositions = new Set<string>([new Position(0, 0).toString()])
+
+  constructor (amountOfKnots: number) {
+    this.knots = Array.from({ length: amountOfKnots }).map(() => new Position(0, 0))
+  }
 
   processInstruction ([direction, steps]: Instruction): void {
     if (steps === 0) return
-    this.moveHead(direction)
-    this.moveTail(direction)
+    let [previousHead] = this.knots
+    for (const [index, knot] of this.knots.entries()) {
+      const currentKnot = knot.clone()
+      if (index === 0) {
+        this.moveHead(direction, knot)
+      } else {
+        this.moveTail(previousHead, index)
+      }
+      previousHead = currentKnot.clone()
+    }
+    // this.printPositions()
     this.processInstruction([direction, steps - 1])
   }
 
   getTailVisitedPositions () {
-    return this.tailVisitedPositions.size
+    return this.tailVisitedPositions
   }
 
-  private moveHead (direction: Direction) {
+  private moveHead (direction: Direction, knot: Position) {
     switch (direction) {
-      case Direction.Up: return this.headPosition.moveUp()
-      case Direction.Right: return this.headPosition.moveRight()
-      case Direction.Down: return this.headPosition.moveDown()
-      case Direction.Left: return this.headPosition.moveLeft()
+      case Direction.Up: return knot.moveUp()
+      case Direction.Right: return knot.moveRight()
+      case Direction.Down: return knot.moveDown()
+      case Direction.Left: return knot.moveLeft()
     }
   }
 
-  private moveTail (direction: Direction) {
-    const { x, y } = this.headPosition
-    const xDelta = this.calcStepsAway(x, this.tailPosition.x)
-    const yDelta = this.calcStepsAway(y, this.tailPosition.y)
+  private moveTail (previousHead: Position, knotIndex: number) {
+    const head = this.knots.at(knotIndex - 1)!
+    const tail = this.knots.at(knotIndex)!
+    const tailBeforeChanges = tail.clone()
+    const { x, y } = head
+    const xDelta = this.calcStepsAway(x, tail.x)
+    const yDelta = this.calcStepsAway(y, tail.y)
     if (xDelta > 1 || yDelta > 1) {
+      const direction = this.calcDirection(previousHead, head)
       switch (direction) {
         case Direction.Up: {
-          this.tailPosition.moveTo(x - 1, y)
+          tail.moveTo(x - 1, y)
           break
         }
         case Direction.Right: {
-          this.tailPosition.moveTo(x, y - 1)
+          tail.moveTo(x, y - 1)
           break
         }
         case Direction.Down: {
-          this.tailPosition.moveTo(x + 1, y)
+          tail.moveTo(x + 1, y)
           break
         }
         case Direction.Left: {
-          this.tailPosition.moveTo(x, y + 1)
+          tail.moveTo(x, y + 1)
           break
         }
       }
-      this.tailVisitedPositions.add(this.tailPosition.toString())
+    }
+    if (knotIndex === (this.knots.length - 1)) {
+      this.updateVisitedPositions(tailBeforeChanges, tail)
+    }
+  }
+
+  private updateVisitedPositions (originalTail: Position, tail: Position) {
+    if (originalTail.x !== tail.x || originalTail.y !== tail.y) {
+      this.tailVisitedPositions.add(tail.toString())
     }
   }
 
   private calcStepsAway (a: number, b: number) {
     return a > b ? a - b : b - a
+  }
+
+  private calcDirection (previousHead: Position, head: Position) {
+    if (previousHead.x > head.x) return Direction.Down
+    if (previousHead.x < head.x) return Direction.Up
+    if (previousHead.y > head.y) return Direction.Left
+    return Direction.Right
   }
 }
 
@@ -104,9 +139,20 @@ function * generateInstructions (input: string): Generator<Instruction> {
 }
 
 export function countTailPositions (input: string) {
-  const rs = new RopeSimulator()
+  const rs = new RopeSimulator(2)
   for (const instruction of generateInstructions(input)) {
     rs.processInstruction(instruction)
   }
-  return rs.getTailVisitedPositions()
+  const positions = rs.getTailVisitedPositions()
+  console.log(Array.from(positions.values()).sort())
+  return positions.size
+}
+
+export function countTailPositionsOnLargeRope (input: string) {
+  const rs = new RopeSimulator(10)
+  for (const instruction of generateInstructions(input)) {
+    rs.processInstruction(instruction)
+  }
+  const positions = rs.getTailVisitedPositions()
+  return positions.size
 }
