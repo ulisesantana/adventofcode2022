@@ -1,25 +1,6 @@
 import { split, sum } from '../utils'
 import { EOL } from 'os'
-
-class Task {
-  constructor (readonly value: number, private cycles) {}
-  static fromCommand (command: string): Task {
-    const [action, rawValue] = split(/\s/, command)
-    const value = Number(rawValue)
-    return new Task(
-      isNaN(value) ? 0 : value,
-      action === 'noop' ? 1 : 2
-    )
-  }
-
-  finishCycle () {
-    this.cycles -= 1
-  }
-
-  isReady () {
-    return this.cycles < 1
-  }
-}
+import { Task } from './Task'
 
 class VideoSystemReplacement {
   private X = 1
@@ -46,6 +27,7 @@ class VideoSystemReplacement {
     return this.executeCycle([task, ...tasks])
   }
 }
+
 export function sumSignalStrengths (input: string) {
   const vsr = new VideoSystemReplacement()
   return sum(
