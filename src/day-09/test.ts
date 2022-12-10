@@ -7,7 +7,7 @@ describe('Day 9', () => {
     expect(countTailPositions(fixturePart1)).toBe(expectedOutputPart1)
     expect(countTailPositions(await readFile('src/day-09/input.txt'))).toBe(5878)
   })
-  it('should count how many positions the tail of the LARGE rope has visited', async () => {
+  it('should count how many positions the tail of the LARGE rope has visited', () => {
     expect(countTailPositionsOnLargeRope(fixturePart2)).toBe(expectedOutputPart2)
   })
 })

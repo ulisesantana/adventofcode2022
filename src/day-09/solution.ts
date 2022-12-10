@@ -7,39 +7,49 @@ enum Direction {
   Right = 'R',
   Down = 'D',
   Left = 'L',
+  None = 'N/A'
 }
 type Instruction = [Direction, Steps]
 
 class Position {
-  constructor (public x: number, public y: number) {}
+  constructor (public x: number, public y: number, public direction: Direction = Direction.None) {}
 
   clone () {
-    return new Position(this.x, this.y)
+    return new Position(this.x, this.y, this.direction)
   }
 
   toString () {
     return `${this.x}:${this.y}`
   }
 
+  equals ({ x, y }: Position) {
+    return this.x === x && this.y === y
+  }
+
   moveUp () {
     this.x += 1
+    this.direction = Direction.Up
   }
 
   moveRight () {
     this.y += 1
+    this.direction = Direction.Right
   }
 
   moveDown () {
     this.x -= 1
+    this.direction = Direction.Down
   }
 
   moveLeft () {
     this.y -= 1
+    this.direction = Direction.Left
   }
 
-  moveTo (x: number, y: number) {
+  moveTo (x: number, y: number, direction: Direction) {
     this.x = x
     this.y = y
+    this.direction = direction
   }
 }
 
@@ -58,12 +68,12 @@ class RopeSimulator {
       const currentKnot = knot.clone()
       if (index === 0) {
         this.moveHead(direction, knot)
+        previousHead = knot.clone()
       } else {
         this.moveTail(previousHead, index)
+        previousHead = currentKnot.clone()
       }
-      previousHead = currentKnot.clone()
     }
-    // this.printPositions()
     this.processInstruction([direction, steps - 1])
   }
 
@@ -88,22 +98,21 @@ class RopeSimulator {
     const xDelta = this.calcStepsAway(x, tail.x)
     const yDelta = this.calcStepsAway(y, tail.y)
     if (xDelta > 1 || yDelta > 1) {
-      const direction = this.calcDirection(previousHead, head)
-      switch (direction) {
+      switch (previousHead.direction) {
         case Direction.Up: {
-          tail.moveTo(x - 1, y)
+          tail.moveTo(x - 1, y, previousHead.direction)
           break
         }
         case Direction.Right: {
-          tail.moveTo(x, y - 1)
+          tail.moveTo(x, y - 1, previousHead.direction)
           break
         }
         case Direction.Down: {
-          tail.moveTo(x + 1, y)
+          tail.moveTo(x + 1, y, previousHead.direction)
           break
         }
         case Direction.Left: {
-          tail.moveTo(x, y + 1)
+          tail.moveTo(x, y + 1, previousHead.direction)
           break
         }
       }
@@ -114,20 +123,13 @@ class RopeSimulator {
   }
 
   private updateVisitedPositions (originalTail: Position, tail: Position) {
-    if (originalTail.x !== tail.x || originalTail.y !== tail.y) {
+    if (!originalTail.equals(tail)) {
       this.tailVisitedPositions.add(tail.toString())
     }
   }
 
   private calcStepsAway (a: number, b: number) {
     return a > b ? a - b : b - a
-  }
-
-  private calcDirection (previousHead: Position, head: Position) {
-    if (previousHead.x > head.x) return Direction.Down
-    if (previousHead.x < head.x) return Direction.Up
-    if (previousHead.y > head.y) return Direction.Left
-    return Direction.Right
   }
 }
 
@@ -143,16 +145,14 @@ export function countTailPositions (input: string) {
   for (const instruction of generateInstructions(input)) {
     rs.processInstruction(instruction)
   }
-  const positions = rs.getTailVisitedPositions()
-  console.log(Array.from(positions.values()).sort())
-  return positions.size
+  return rs.getTailVisitedPositions().size
 }
 
+// result is too low: 2030
 export function countTailPositionsOnLargeRope (input: string) {
   const rs = new RopeSimulator(10)
   for (const instruction of generateInstructions(input)) {
     rs.processInstruction(instruction)
   }
-  const positions = rs.getTailVisitedPositions()
-  return positions.size
+  return rs.getTailVisitedPositions().size
 }
