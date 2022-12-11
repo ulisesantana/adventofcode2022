@@ -3,6 +3,7 @@
 // Ejecutar 20 rondas y multiplicar los 2 más altos
 
 import { split } from '../utils'
+import { EOL } from 'os'
 
 type Item = number
 type MonkeyId = number
@@ -40,40 +41,82 @@ export class Monkey {
     return this.items.length > 0
   }
 
-  inspectItem (): [Item, MonkeyId] {
-    const item = this.items.shift()
-    this.#amountOfInspectedItems += 1
-    const worryLevel = this.operation(item) / 3
-    return worryLevel % this.testValue
-      ? [worryLevel, this.testTrue]
-      : [worryLevel, this.testTrue]
+  * inspectItems (): Generator<[Item, MonkeyId]> {
+    for (const item of this.items) {
+      this.#amountOfInspectedItems += 1
+      const worryLevel = Math.floor(this.operation(item) / 3)
+      yield worryLevel % this.testValue
+        ? [worryLevel, this.testFalse]
+        : [worryLevel, this.testTrue]
+    }
+    this.items.length = 0
   }
 
-  // Starting items: 54, 65, 75, 74
-  // Operation: new = old + 6
-  // Test: divisible by 19
-  // If true: throw to monkey 2
-  // If false: throw to monkey 0
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static from (monkeyId: number, input: string): Monkey {
-    input
-    // split(/:/, input.match(/Starting items:( \d+,?)+/)!.toString()).slice(1).map(x => Number(x.replace(/[,/s]/, '')))
     return new Monkey({
-      items: [54, 65, 75, 74],
       monkeyId,
-      operation (old) {
-        return old + 6
-      },
-      testFalse: 0,
-      testTrue: 2,
-      testValue: 19
+      items: Monkey.createItemsFromInput(input),
+      operation: Monkey.createOperationFromInput(input),
+      testFalse: Monkey.getMonkeyNumericAttribute('If false', input),
+      testTrue: Monkey.getMonkeyNumericAttribute('If true', input),
+      testValue: Monkey.getMonkeyNumericAttribute('Test', input)
     })
   }
+
+  private static createItemsFromInput (input: string): Item[] {
+    const rawItems = Monkey.getMonkeyAttribute('Starting items', input)
+    return split(',', rawItems.replaceAll(/\s/g, '')).map(Number)
+  }
+
+  private static getMonkeyAttribute (attribute: string, input: string): string {
+    return split(EOL, input).reduce((result, line) => line.includes(attribute)
+      ? split(':', line).at(1)!
+      : result,
+    '')
+  }
+
+  private static getMonkeyNumericAttribute (attribute: string, input: string): number {
+    const attr = Monkey.getMonkeyAttribute(attribute, input)
+    const value = attr.match(/\d+/)!
+    return Number(value.at(0)!)
+  }
+
+  private static createOperationFromInput (input: string): Function {
+    const rawOperation = Monkey.getMonkeyAttribute('Operation', input)
+    // eslint-disable-next-line no-new-func
+    return new Function('old', `return ${split('=', rawOperation).at(1)}`)
+  }
 }
 
-class MonkeyBusiness {
+export class MonkeyBusiness {
+  readonly monkeys = [] as Monkey[]
+  constructor (input: string) {
+    const rawMonkeys = split(/Monkey \d:/g, input).filter(x => x !== EOL)
+    for (const [index, rawMonkey] of rawMonkeys.entries()) {
+      this.monkeys.push(Monkey.from(index, rawMonkey))
+    }
+  }
+
+  run (amountOfRounds: number) {
+    for (let i = 0; i < amountOfRounds; i++) {
+      this.round()
+    }
+  }
+
+  private round () {
+    for (const monkey of this.monkeys) {
+      if (monkey.hasItems()) {
+        for (const [item, toMonkeyId] of monkey.inspectItems()) {
+          this.monkeys.at(toMonkeyId)!.items.push(item)
+        }
+      }
+    }
+  }
 }
 
-export function doStuff (input: string) {
-  return Monkey.from(0, input)
+export function getMonkeyBusiness (input: string) {
+  const mb = new MonkeyBusiness(input)
+  mb.run(20)
+  const [m1, m2] = Array.from(mb.monkeys).sort((a, b) => b.amountOfInspectedItems - a.amountOfInspectedItems)
+  return m1.amountOfInspectedItems * m2.amountOfInspectedItems
 }

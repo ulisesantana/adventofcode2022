@@ -1,9 +1,9 @@
-import { doStuff, Monkey } from './solution'
+import { getMonkeyBusiness, Monkey, MonkeyBusiness } from './solution'
 import { expectedOutput, fixture } from './fixture'
 
 describe('Day 11', () => {
-  xit('should ', () => {
-    expect(doStuff(fixture)).toBe(expectedOutput)
+  it('should ', () => {
+    expect(getMonkeyBusiness(fixture)).toBe(expectedOutput)
   })
 
   describe('Monkey should', () => {
@@ -29,6 +29,25 @@ If false: throw to monkey 0`)
       expect(monkey.testFalse).toBe(expectedMonkey.testFalse)
       expect(monkey.testTrue).toBe(expectedMonkey.testTrue)
       expect(monkey.testValue).toBe(expectedMonkey.testValue)
+    })
+  })
+
+  describe('Monkey Business should', () => {
+    it('create all monkeys from raw input', () => {
+      const mb = new MonkeyBusiness(fixture)
+      expect(mb.monkeys).toHaveLength(4)
+      expect(mb.monkeys.at(0)!.id).toBe(0)
+      expect(mb.monkeys.at(0)!.items).toEqual([79, 98])
+      expect(mb.monkeys.at(-1)!.id).toBe(3)
+      expect(mb.monkeys.at(-1)!.items).toEqual([74])
+    })
+    it('run a round off monkeys doing monkey stuff', () => {
+      const mb = new MonkeyBusiness(fixture)
+      mb.run(1)
+      expect(mb.monkeys.at(0)!.items).toEqual([20, 23, 27, 26])
+      expect(mb.monkeys.at(1)!.items).toEqual([2080, 25, 167, 207, 401, 1046])
+      expect(mb.monkeys.at(2)!.items).toEqual([])
+      expect(mb.monkeys.at(3)!.items).toEqual([])
     })
   })
 })

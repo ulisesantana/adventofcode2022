@@ -1,6 +1,6 @@
 import { readFile } from '../utils'
-import { doStuff } from './solution'
+import { getMonkeyBusiness } from './solution'
 
 readFile('src/day-11/input.txt').then((input) => {
-  console.log(`Result: ${doStuff(input)}`)
+  console.log(`Result: ${getMonkeyBusiness(input)}`)
 })
