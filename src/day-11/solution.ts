@@ -1,4 +1,4 @@
-import { split } from '../utils'
+import { multiply, split } from '../utils'
 import { EOL } from 'os'
 
 type Item = number
@@ -37,10 +37,10 @@ export class Monkey {
     return this.items.length > 0
   }
 
-  * inspectItems (relief: boolean): Generator<[Item, MonkeyId]> {
+  * inspectItems (lcm?: number): Generator<[Item, MonkeyId]> {
     for (const item of this.items) {
       this.#amountOfInspectedItems += 1
-      const worryLevel = this.getWorryLevel(item, relief)
+      const worryLevel = this.getWorryLevel(item, lcm)
       yield worryLevel % this.testValue
         ? [worryLevel, this.testFalse]
         : [worryLevel, this.testTrue]
@@ -48,18 +48,18 @@ export class Monkey {
     this.items.length = 0
   }
 
-  private getWorryLevel (item: number, relief: boolean) {
-    return relief
+  private getWorryLevel (item: number, lcm?: number) {
+    return lcm === undefined
       ? this.getWorryLevelWithRelief(item)
-      : this.getWorryLevelWithoutRelief(item)
+      : this.getWorryLevelWithoutRelief(item, lcm)
   }
 
   private getWorryLevelWithRelief (item: number) {
     return Math.floor(this.operation(item) / 3)
   }
 
-  private getWorryLevelWithoutRelief (item: number) {
-    return Math.floor(this.operation(item))
+  private getWorryLevelWithoutRelief (item: number, lcm: number) {
+    return Math.floor(this.operation(item) % lcm)
   }
 
   static from (monkeyId: number, input: string): Monkey {
@@ -113,10 +113,10 @@ export class MonkeyBusiness {
     }
   }
 
-  private round (withRelief = true) {
+  private round (lcm?: number) {
     for (const monkey of this.monkeys) {
       if (monkey.hasItems()) {
-        for (const [item, toMonkeyId] of monkey.inspectItems(withRelief)) {
+        for (const [item, toMonkeyId] of monkey.inspectItems(lcm)) {
           this.monkeys.at(toMonkeyId)!.items.push(item)
         }
       }
@@ -124,8 +124,9 @@ export class MonkeyBusiness {
   }
 
   runWithoutRelief (amountOfRounds: number) {
+    const lcm = multiply(...this.monkeys.map(m => m.testValue))
     for (let i = 0; i < amountOfRounds; i++) {
-      this.round(false)
+      this.round(lcm)
     }
   }
 }
@@ -133,6 +134,13 @@ export class MonkeyBusiness {
 export function getMonkeyBusiness (input: string) {
   const mb = new MonkeyBusiness(input)
   mb.run(20)
+  const [m1, m2] = Array.from(mb.monkeys).sort((a, b) => b.amountOfInspectedItems - a.amountOfInspectedItems)
+  return m1.amountOfInspectedItems * m2.amountOfInspectedItems
+}
+
+export function getMonkeyBusinessWithoutRelief (input: string) {
+  const mb = new MonkeyBusiness(input)
+  mb.runWithoutRelief(10_000)
   const [m1, m2] = Array.from(mb.monkeys).sort((a, b) => b.amountOfInspectedItems - a.amountOfInspectedItems)
   return m1.amountOfInspectedItems * m2.amountOfInspectedItems
 }
