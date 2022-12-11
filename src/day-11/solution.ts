@@ -1,7 +1,3 @@
-// Creación de Monos
-// Ejecutar una ronda
-// Ejecutar 20 rondas y multiplicar los 2 más altos
-
 import { split } from '../utils'
 import { EOL } from 'os'
 
@@ -41,15 +37,29 @@ export class Monkey {
     return this.items.length > 0
   }
 
-  * inspectItems (): Generator<[Item, MonkeyId]> {
+  * inspectItems (relief: boolean): Generator<[Item, MonkeyId]> {
     for (const item of this.items) {
       this.#amountOfInspectedItems += 1
-      const worryLevel = Math.floor(this.operation(item) / 3)
+      const worryLevel = this.getWorryLevel(item, relief)
       yield worryLevel % this.testValue
         ? [worryLevel, this.testFalse]
         : [worryLevel, this.testTrue]
     }
     this.items.length = 0
+  }
+
+  private getWorryLevel (item: number, relief: boolean) {
+    return relief
+      ? this.getWorryLevelWithRelief(item)
+      : this.getWorryLevelWithoutRelief(item)
+  }
+
+  private getWorryLevelWithRelief (item: number) {
+    return Math.floor(this.operation(item) / 3)
+  }
+
+  private getWorryLevelWithoutRelief (item: number) {
+    return Math.floor(this.operation(item))
   }
 
   static from (monkeyId: number, input: string): Monkey {
@@ -103,13 +113,19 @@ export class MonkeyBusiness {
     }
   }
 
-  private round () {
+  private round (withRelief = true) {
     for (const monkey of this.monkeys) {
       if (monkey.hasItems()) {
-        for (const [item, toMonkeyId] of monkey.inspectItems()) {
+        for (const [item, toMonkeyId] of monkey.inspectItems(withRelief)) {
           this.monkeys.at(toMonkeyId)!.items.push(item)
         }
       }
+    }
+  }
+
+  runWithoutRelief (amountOfRounds: number) {
+    for (let i = 0; i < amountOfRounds; i++) {
+      this.round(false)
     }
   }
 }

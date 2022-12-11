@@ -1,9 +1,11 @@
 import { getMonkeyBusiness, Monkey, MonkeyBusiness } from './solution'
 import { expectedOutput, fixture } from './fixture'
+import { readFile } from '../utils'
 
 describe('Day 11', () => {
-  it('should ', () => {
+  it('should calc monkey business with two most active monkeys with relief', async () => {
     expect(getMonkeyBusiness(fixture)).toBe(expectedOutput)
+    expect(getMonkeyBusiness(await readFile('src/day-11/input.txt'))).toBe(120756)
   })
 
   describe('Monkey should', () => {
@@ -48,6 +50,14 @@ If false: throw to monkey 0`)
       expect(mb.monkeys.at(1)!.items).toEqual([2080, 25, 167, 207, 401, 1046])
       expect(mb.monkeys.at(2)!.items).toEqual([])
       expect(mb.monkeys.at(3)!.items).toEqual([])
+    })
+    it('run 20 rounds of monkeys doing monkey stuff without relief', () => {
+      const mb = new MonkeyBusiness(fixture)
+      mb.runWithoutRelief(20)
+      expect(mb.monkeys.at(0)!.amountOfInspectedItems).toBe(99)
+      expect(mb.monkeys.at(1)!.amountOfInspectedItems).toBe(97)
+      expect(mb.monkeys.at(2)!.amountOfInspectedItems).toBe(8)
+      expect(mb.monkeys.at(3)!.amountOfInspectedItems).toBe(103)
     })
   })
 })
