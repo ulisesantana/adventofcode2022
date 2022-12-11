@@ -5,6 +5,7 @@ Monkey 0:
   Test: divisible by 23
     If true: throw to monkey 2
     If false: throw to monkey 3
+
 Monkey 1:
 Starting items: 54, 65, 75, 74
 Operation: new = old + 6
@@ -27,4 +28,4 @@ If true: throw to monkey 0
 If false: throw to monkey 1
 `
 
-export const expectedOutput = undefined
+export const expectedOutput = 10605
