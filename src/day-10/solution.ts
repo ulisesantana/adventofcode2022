@@ -47,20 +47,19 @@ class VideoSystemReplacement {
   }
 
   private drawPixel (currentCycle: number) {
-    const ctrPositions = this.getCRTPositions(currentCycle)
-    if (ctrPositions.includes(this.X)) {
+    if (this.screen.length > 0 && this.screen.length % this.screenWidth === 0) {
+      this.screenLines += 1
+    }
+    if (this.getCRTPositions(currentCycle).includes(this.X)) {
       this.screen.push('#')
     } else {
       this.screen.push('.')
     }
-    if ((this.screen.length / this.screenWidth) > (this.screenLines + 1)) {
-      this.screenLines += 1
-    }
   }
 
   private getCRTPositions (currentCycle: number) {
-    const centerPosition = currentCycle - (this.screenWidth * this.screenLines)
-    return [centerPosition - 2, centerPosition - 1, centerPosition]
+    const position = currentCycle - (this.screenWidth * this.screenLines)
+    return [position - 2, position - 1, position]
   }
 }
 

@@ -3,7 +3,7 @@ import { expectedOutputPart1, expectedOutputPart2, fixture } from './fixture'
 import { readFile } from '../utils'
 
 describe('Day 10', () => {
-  xit('should sum the signal strengths based on cycles', async () => {
+  it('should sum the signal strengths based on cycles', async () => {
     expect(sumSignalStrengths(fixture)).toBe(expectedOutputPart1)
     expect(sumSignalStrengths(await readFile('src/day-10/input.txt'))).toBe(12880)
   })
